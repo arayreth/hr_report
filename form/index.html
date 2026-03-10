@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accueil – Portail de signalements</title>
+</head>
+<body>
+    <h1>Portail de signalements internes</h1>
+    <p id="welcome-message">Bienvenue</p>
+
+    <hr>
+
+    <h2>Que souhaitez-vous faire ?</h2>
+
+    <ul>
+        <li><a href="form/harassment_report_form.html">Déposer un signalement</a></li>
+    </ul>
+
+    <h3>Suivre mon signalement</h3>
+    <p>Entrez votre code de suivi :</p>
+    <input type="text" placeholder="Ex: SIG-2025-034">
+    <button>Rechercher</button>
+
+    <hr>
+
+    <button onclick="logout()">Se déconnecter</button>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) {
+            window.location.href = 'form/login.html';
+        } else {
+            document.getElementById('welcome-message').textContent = 'Bienvenue, ' + user.email;
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = 'form/login.html';
+        }
+    </script>
+</body>
+</html>
