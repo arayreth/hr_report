@@ -14,12 +14,12 @@ Index · HTML
 
         <div class="menu">
             <a href="form/harassment_report_form.html" class="menu-card">
-                <h2> Déposer un signalement</h2>
+                <h2>Déposer un signalement</h2>
                 <p>Signalez un comportement problématique de façon confidentielle ou anonyme.</p>
             </a>
 
             <div class="menu-card">
-                <h2> Suivre mon signalement</h2>
+                <h2>Suivre mon signalement</h2>
                 <p>Consultez l'état de votre dossier grâce à votre code de suivi.</p>
                 <input type="text" placeholder="Code de suivi (ex: SIG-2025-034)" style="margin-top:10px; width:100%; padding:8px; box-sizing:border-box;">
                 <button style="margin-top:8px;">Rechercher</button>
@@ -37,14 +37,14 @@ Index · HTML
         // Vérifie si l'utilisateur est connecté
         const user = JSON.parse(localStorage.getItem('user'));
         if (!user) {
-            window.location.href = 'login.html';
+            window.location.href = 'form/login.html';
         } else {
             document.getElementById('welcome-message').textContent = 'Bienvenue, ' + user.email;
         }
 
         function logout() {
             localStorage.removeItem('user');
-            window.location.href = 'login.html';
+            window.location.href = 'form/login.html';
         }
     </script>
 </body>
