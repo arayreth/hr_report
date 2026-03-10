@@ -1,0 +1,127 @@
+body {
+    font-family: 'Open Sans', sans-serif;
+    background-color: #f5f7fa;
+    color: #1a1a1a;
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    text-align: center;
+    color: #0d3b66;
+    margin-top: 40px;
+    font-weight: 700;
+}
+
+form {
+    max-width: 750px;
+    margin: 40px auto;
+    background-color: #1f5a80;
+    padding: 40px 50px;
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    color: #ffffff;
+    border: 1px solid #144466;
+}
+
+section {
+    margin-bottom: 30px;
+}
+
+section h2 {
+    font-weight: 700;
+    color: #ffffff;
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+}
+
+.name-fields {
+    display: flex;
+    gap: 20px;
+}
+
+.name-fields .field {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #ffffff;
+}
+
+.checkbox-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+input[type="text"],
+select,
+textarea,
+input[type="file"] {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #b0c4de;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    font-size: 15px;
+    background-color: #f9fbfd;
+    color: #1a1a1a;
+    transition: border 0.3s ease, box-shadow 0.3s ease;
+}
+
+input[type="text"]:focus,
+select:focus,
+textarea:focus,
+input[type="file"]:focus {
+    border: 1px solid #0d3b66;
+    box-shadow: 0 0 8px rgba(13, 59, 102, 0.3);
+    outline: none;
+}
+
+input[type="checkbox"] {
+    transform: scale(1.2);
+}
+
+button {
+    display: block;
+    width: 100%;
+    padding: 16px 0;
+    background-color: #ffffff;
+    color: #1f5a80;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+    background-color: #e6e6e6;
+    transform: translateY(-2px);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+.report_form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: #8fa1b3;
+}
+
+select {
+    background-color: #f9fbfd;
+}
