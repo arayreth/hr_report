@@ -34,17 +34,18 @@
 <legend>Détails du signalement</legend>
 
 <label for="reporting_type">Type de signalement</label><br>
-<select id="reporting_type" name="reporting_type">
-<option value="moral_harassment">Harcèlement moral</option>
-<option value="sexual_harassment">Harcèlement sexuel</option>
-<option value="discriminatory_harassment">Harcèlement discriminatoire</option>
-<option value="abuse_of_authority">Abus d'autorité</option>
+<select id="reporting_type" name="reporting_type" required>
+    <option value="" disabled selected hidden>Choisissez une option</option>
+    <option value="moral_harassment">Harcèlement moral</option>
+    <option value="sexual_harassment">Harcèlement sexuel</option>
+    <option value="discriminatory_harassment">Harcèlement discriminatoire</option>
+    <option value="abuse_of_authority">Abus d'autorité</option>
 </select>
 
 <br><br>
 
 <label for="description">Description</label><br>
-<textarea id="description" name="description" rows="5" required></textarea>
+<textarea id="description" name="description" rows="5" required placeholder="Racontez nous les faits en détails"></textarea>
 
 <br><br>
 
