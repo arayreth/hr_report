@@ -1,33 +1,42 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Connexion</title>
+    <link rel="stylesheet" href="../style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="login-container">
-        <h2>Se connecter</h2>
+    <div class="page-wrapper">
+        <div class="header-block">
+            <div class="badge">Espace sécurisé</div>
+            <h1>Se connecter</h1>
+            <p class="subtitle">Accès réservé aux personnes autorisées</p>
+        </div>
 
-        <form id="loginForm">
-            <div class="input-group">
-                <label>Email</label>
-                <input type="email" id="email" required>
-            </div>
+        <div class="login-container">
+            <form id="loginForm">
+                <div class="input-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required placeholder="exemple@domaine.fr">
+                </div>
 
-            <div class="input-group">
-                <label>Mot de passe </label>
-                <input type="password" id="password" required>
-            </div>
+                <div class="input-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" required placeholder="••••••••">
+                </div>
 
-            <button type="submit">Se connecter</button>
-        </form>
+                <button type="submit">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                    Se connecter
+                </button>
+            </form>
 
-        <p id="message"></p>
+            <p class="login-help">Pas de compte ? Contactez <a href="mailto:informatique@hrcompliancetech.com">informatique@hrcompliancetech.com</a></p>
+
+            <p id="message"></p>
+        </div>
     </div>
-
-    <script src="script.js"></script>
 </body>
 </html>
-
