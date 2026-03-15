@@ -1,411 +1,402 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Portail de signalements internes – HRComplianceTech Solutions">
-    <title>Portail de signalements – HRComplianceTech Solutions</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portail de signalement interne – HRComplianceTech</title>
 </head>
+
 <body>
 
 <header>
-    <h1>Portail de signalements internes</h1>
-    <nav aria-label="Navigation utilisateur">
-        <p>Bienvenue, <strong id="welcomeName"></strong> — <span id="welcomeEmail"></span> | Rôle : <span id="welcomeRole"></span></p>
-        <button id="logoutBtn" type="button">Se déconnecter</button>
-    </nav>
+<h1>Portail de signalements internes</h1>
+
+<p>
+Bonjour <strong id="welcomeName"></strong> —
+<span id="welcomeEmail"></span> |
+Rôle : <span id="welcomeRole"></span>
+<button id="logoutBtn" type="button">Se déconnecter</button>
+</p>
 </header>
+
+<hr>
 
 <main>
 
-    <section id="section-profil" aria-labelledby="titre-profil">
-        <h2 id="titre-profil">Mon profil</h2>
-        <table border="1" cellpadding="6">
-            <tbody>
-                <tr><th scope="row">Email</th><td id="profileEmail"></td></tr>
-                <tr><th scope="row">Rôle</th><td id="profileRole"></td></tr>
-                <tr><th scope="row">Signalements déposés</th><td id="totalCount"></td></tr>
-            </tbody>
-        </table>
-    </section>
+<h2>Mon profil</h2>
+<p>Email : <span id="profileEmail"></span></p>
+<p>Rôle : <span id="profileRole"></span></p>
+<p>Nombre de signalements déposés : <span id="totalCount"></span></p>
 
-    <hr>
+<hr>
 
-    <section id="section-signalement" aria-labelledby="titre-signalement">
-        <h2 id="titre-signalement">Mon signalement actif</h2>
-        <div id="activeReport" aria-live="polite"></div>
-    </section>
+<h2>Mon signalement actif</h2>
+<div id="activeReport"></div>
 
-    <hr>
+<hr>
 
-    <section id="section-avancement" aria-labelledby="titre-avancement">
-        <h2 id="titre-avancement">Avancement du signalement</h2>
-        <p><small>Statuts : <strong>OUVERT</strong> → <strong>EN_COURS</strong> → <strong>EN_ATTENTE_INFO</strong> ↔ <strong>EN_COURS</strong> → <strong>CLOS_FONDÉ</strong> / <strong>CLOS_NON_FONDÉ</strong></small></p>
-        <div id="progressSection" aria-live="polite"></div>
-    </section>
+<h2>Avancement du signalement</h2>
+<div id="progressSection"></div>
 
-    <hr>
+<hr>
 
-    <section id="section-recherche" aria-labelledby="titre-recherche">
-        <h2 id="titre-recherche">Rechercher un signalement par code</h2>
-        <label for="searchInput">Code de suivi</label><br>
-        <input type="text" id="searchInput" placeholder="Ex: SIG-2025-034"
-               autocomplete="off" spellcheck="false" maxlength="20"
-               pattern="SIG-\d{4}-\d{3,}" aria-describedby="searchHint">
-        <span id="searchHint"><small> Format : SIG-AAAA-NNN</small></span>
-        <button type="button" id="searchBtn">Rechercher</button>
-        <div id="searchResult" role="status" aria-live="polite"></div>
-    </section>
+<h2>Rechercher un signalement</h2>
 
-    <hr>
+<label for="searchInput">Code du signalement :</label>
+<input type="text" id="searchInput" placeholder="Ex : SIG-2025-034" maxlength="20">
+<button type="button" id="searchBtn">Rechercher</button>
 
-    <section id="section-actions" aria-labelledby="titre-actions">
-        <h2 id="titre-actions">Actions disponibles</h2>
-        <div id="actionsSection"></div>
-    </section>
+<div id="searchResult"></div>
 
-    <section id="rhSection" aria-labelledby="titre-rh" hidden>
-        <hr>
-        <h2 id="titre-rh">Tableau de bord RH / Juriste</h2>
-        <label for="filterStatus">Statut :</label>
-        <select id="filterStatus">
-            <option value="">Tous</option>
-            <option value="OUVERT">Ouvert</option>
-            <option value="EN_COURS">En cours d'instruction</option>
-            <option value="EN_ATTENTE_INFO">En attente d'informations</option>
-            <option value="CLOS_FONDE">Clôturé – Fondé</option>
-            <option value="CLOS_NON_FONDE">Clôturé – Non fondé</option>
-        </select>
-        <label for="filterType">Type :</label>
-        <select id="filterType">
-            <option value="">Tous</option>
-            <option value="moral_harassment">Harcèlement moral</option>
-            <option value="sexual_harassment">Harcèlement sexuel</option>
-            <option value="discriminatory_harassment">Harcèlement discriminatoire</option>
-            <option value="abuse_of_authority">Abus d'autorité</option>
-            <option value="discrimination">Discrimination</option>
-            <option value="ethics">Atteinte à l'éthique / intégrité</option>
-        </select>
-        <p id="rhTableCount" aria-live="polite"></p>
-        <table border="1" cellpadding="6" id="rhTable">
-            <caption>Signalements en attente de traitement</caption>
-            <thead>
-                <tr><th scope="col">Code</th><th scope="col">Type</th><th scope="col">Statut</th><th scope="col">Date de dépôt</th><th scope="col">Anonyme</th><th scope="col">Action</th></tr>
-            </thead>
-            <tbody id="rhTableBody"></tbody>
-        </table>
-    </section>
+<hr>
 
-    <section id="section-log" aria-labelledby="titre-log" hidden>
-        <hr>
-        <h2 id="titre-log">Journal d'activité (session en cours)</h2>
-        <p><small>Les 10 dernières actions de cette session.</small></p>
-        <div id="sessionLog" role="log" aria-live="polite" aria-atomic="false">
-            <p><em>Aucune action enregistrée pour l'instant.</em></p>
-        </div>
-    </section>
+<h2>Actions disponibles</h2>
+<div id="actionsSection"></div>
+
+<div id="rhSection" hidden>
+
+<hr>
+
+<h2>Tableau de bord RH / Juriste</h2>
+
+<p>
+Statut :
+<select id="filterStatus">
+<option value="">Tous</option>
+<option value="OUVERT">Ouvert</option>
+<option value="EN_COURS">En cours</option>
+<option value="EN_ATTENTE_INFO">En attente d'informations</option>
+<option value="CLOS_FONDE">Clôturé – Fondé</option>
+<option value="CLOS_NON_FONDE">Clôturé – Non fondé</option>
+</select>
+
+Type :
+<select id="filterType">
+<option value="">Tous</option>
+<option value="moral_harassment">Harcèlement moral</option>
+<option value="sexual_harassment">Harcèlement sexuel</option>
+<option value="discriminatory_harassment">Harcèlement discriminatoire</option>
+<option value="abuse_of_authority">Abus d'autorité</option>
+</select>
+</p>
+
+<p id="rhTableCount"></p>
+
+<table border="1" cellpadding="6">
+<thead>
+<tr>
+<th>Code</th>
+<th>Type</th>
+<th>Statut</th>
+<th>Date</th>
+<th>Anonyme</th>
+<th>Messagerie</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody id="rhTableBody"></tbody>
+</table>
+
+</div>
+
+<div id="section-log" hidden>
+
+<hr>
+
+<h2>Journal de session</h2>
+<div id="sessionLog">
+<em>Aucune action enregistrée.</em>
+</div>
+
+</div>
 
 </main>
 
-
 <script>
-/* =====================================================================
-   UTILITAIRES
-===================================================================== */
 
-const $ = id => document.getElementById(id);
+/* ----------- utilitaires ----------- */
 
-function escapeHTML(val) {
-    if (val == null) return '';
-    return String(val)
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-}
+const el=id=>document.getElementById(id);
 
-function now() {
-    return new Date().toLocaleString('fr-FR', {
-        day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
-    });
-}
-
-/* =====================================================================
-   CONSTANTES ET LIBELLÉS
-===================================================================== */
-
-const VALID_ROLES   = ['salarie', 'rh', 'juriste', 'admin'];
-const ROLE_LABELS   = { salarie: 'Salarié(e)', rh: 'Responsable RH', juriste: 'Juriste', admin: 'Administrateur technique' };
-const STATUS_LABELS = { OUVERT: 'Ouvert', EN_COURS: "En cours d'instruction", EN_ATTENTE_INFO: "En attente d'informations", CLOS_FONDE: 'Clôturé – Fondé', CLOS_NON_FONDE: 'Clôturé – Non fondé' };
-const TYPE_LABELS   = { moral_harassment: 'Harcèlement moral', sexual_harassment: 'Harcèlement sexuel', discriminatory_harassment: 'Harcèlement discriminatoire', abuse_of_authority: "Abus d'autorité", discrimination: 'Discrimination', ethics: "Atteinte à l'éthique / intégrité" };
-const CODE_REGEX    = /^SIG-\d{4}-\d{3,}$/;
-
-/* =====================================================================
-   DONNÉES MOCKÉES (a supprimer c'est juste des exemple) 
-===================================================================== */
-
-const mockReports = {
-    'SIG-2025-034': {
-        type: 'moral_harassment', status: 'EN_COURS', date: '12/03/2025',
-        anonymous: false, author: 'Marie Lambert', title: 'Pression répétée de la hiérarchie',
-        steps: [
-            { label: 'Signalement déposé',      date: '12/03/2025 09h14',  done: true },
-            { label: 'Accusé de réception',      date: '12/03/2025 09h22',  done: true },
-            { label: 'Instruction en cours',     date: 'Depuis 14/03/2025', done: false, current: true },
-            { label: 'Audition (si nécessaire)', date: '',                  done: false },
-            { label: 'Décision et clôture',      date: '',                  done: false }
-        ]
-    },
-    'SIG-2025-011': {
-        type: 'abuse_of_authority', status: 'CLOS_FONDE', date: '15/01/2025',
-        anonymous: true, author: 'Anonyme', title: 'Comportement intimidant du responsable de service',
-        steps: [
-            { label: 'Signalement déposé',  date: '15/01/2025', done: true },
-            { label: 'Accusé de réception', date: '15/01/2025', done: true },
-            { label: 'Instruction',         date: '20/01/2025', done: true },
-            { label: 'Audition',            date: '28/01/2025', done: true },
-            { label: 'Clôture – Fondé',     date: '10/02/2025', done: true }
-        ]
-    },
-    'SIG-2025-050': {
-        type: 'sexual_harassment', status: 'EN_ATTENTE_INFO', date: '01/03/2025',
-        anonymous: false, author: 'Paul Dupont', title: 'Comportements déplacés lors de réunions',
-        steps: [
-            { label: 'Signalement déposé',        date: '01/03/2025',        done: true },
-            { label: 'Accusé de réception',        date: '01/03/2025',        done: true },
-            { label: "En attente d'informations",  date: 'Depuis 05/03/2025', done: false, current: true },
-            { label: 'Audition (si nécessaire)',   date: '',                  done: false },
-            { label: 'Décision et clôture',        date: '',                  done: false }
-        ]
-    }
+const esc=value=>{
+if(value===null||value===undefined)return"";
+return String(value)
+.replace(/&/g,"&amp;")
+.replace(/</g,"&lt;")
+.replace(/>/g,"&gt;")
+.replace(/"/g,"&quot;");
 };
 
-/* =====================================================================
-   GESTION UTILISATEUR
-===================================================================== */
+/* ----------- référentiels ----------- */
 
-function buildGuestUser() { return { first_name: 'Visiteur', last_name: '', email: '—', role: 'salarie' }; }
-function fullName(u)       { return `${u.first_name} ${u.last_name}`.trim(); }
+const ROLES={
+salarie:"Salarié",
+rh:"Responsable RH",
+juriste:"Juriste",
+admin:"Administrateur"
+};
 
-function loadUser() {
-    try {
-        const raw = localStorage.getItem('user');
-        if (!raw) return buildGuestUser();
-        const p = JSON.parse(raw);
-        const invalid = typeof p.first_name !== 'string' || !p.first_name.trim()
-                     || typeof p.last_name  !== 'string' || typeof p.email !== 'string'
-                     || !VALID_ROLES.includes(p.role);
-        if (invalid) { console.warn('[Auth] Données invalides – utilisateur invité.'); return buildGuestUser(); }
-        return { first_name: p.first_name.trim(), last_name: p.last_name.trim(), email: p.email.trim(), role: p.role };
-    } catch (e) {
-        console.error('[Auth]', e);
-        return buildGuestUser();
-    }
+const STATUTS={
+OUVERT:"Ouvert",
+EN_COURS:"En cours",
+EN_ATTENTE_INFO:"En attente d'informations",
+CLOS_FONDE:"Clôturé – Fondé",
+CLOS_NON_FONDE:"Clôturé – Non fondé"
+};
+
+const TYPES={
+moral_harassment:"Harcèlement moral",
+sexual_harassment:"Harcèlement sexuel",
+discriminatory_harassment:"Harcèlement discriminatoire",
+abuse_of_authority:"Abus d'autorité"
+};
+
+/* ===========================================================
+   TODO (SUPPRIMER) : données de démonstration 
+   À remplacer par un appel API 
+   =========================================================== */
+const rapports={
+
+"SIG-2025-034":{
+type:"moral_harassment",
+statut:"EN_COURS",
+date:"12/03/2025",
+anonyme:false,
+auteur:"Marie Lambert",
+titre:"Pression répétée de la hiérarchie",
+etapes:[
+{label:"Signalement déposé",date:"12/03/2025",fait:true},
+{label:"Accusé de réception",date:"12/03/2025",fait:true},
+{label:"Instruction en cours",date:"14/03/2025",actuel:true},
+{label:"Audition (si nécessaire)",date:"",fait:false},
+{label:"Décision et clôture",date:"",fait:false}
+]
+},
+
+"SIG-2025-011":{
+type:"abuse_of_authority",
+statut:"CLOS_FONDE",
+date:"15/01/2025",
+anonyme:true,
+auteur:"Anonyme",
+titre:"Comportement intimidant du responsable",
+etapes:[
+{label:"Signalement déposé",fait:true},
+{label:"Instruction",fait:true},
+{label:"Clôture – Fondé",fait:true}
+]
 }
 
-const user = loadUser();
+};
 
-/* =====================================================================
-   JOURNAL DE SESSION
-===================================================================== */
+/* ----------- utilisateur (localStorage ou démo) ----------- */
 
-const sessionLog = [];
+let user = null;
+try {
+    const p = JSON.parse(localStorage.getItem('user'));
+    if (p && p.first_name && ['salarie','rh','juriste','admin'].includes(p.role))
+        user = p;
+} catch(e) {}
 
-function logAction(action, detail = '') {
-    sessionLog.unshift({ timestamp: now(), role: ROLE_LABELS[user.role] || user.role, action, detail });
-    if (sessionLog.length > 50) sessionLog.pop();
-    renderLog();
+// ===========================================================
+// TODO (SUPPRIMER) : utilisateur de démo par défaut.
+// ===========================================================
+if (!user) {
+    user = {
+        first_name : 'Marie',
+        last_name  : 'Lambert',
+        email      : 'marie.lambert@entreprise.fr',
+        role       : 'rh'
+    };
 }
 
-function renderLog() {
-    const logDiv = $('sessionLog');
-    if (!logDiv) return;
-    const rows = sessionLog.slice(0, 10);
-    if (!rows.length) { logDiv.innerHTML = '<p><em>Aucune action enregistrée.</em></p>'; return; }
-    logDiv.innerHTML =
-        `<table border="1" cellpadding="4"><thead><tr><th>Heure</th><th>Rôle</th><th>Action</th><th>Détail</th></tr></thead><tbody>` +
-        rows.map(e =>
-            `<tr><td><small>${escapeHTML(e.timestamp)}</small></td><td>${escapeHTML(e.role)}</td>` +
-            `<td>${escapeHTML(e.action)}</td><td>${escapeHTML(e.detail)}</td></tr>`
-        ).join('') + '</tbody></table>';
+const nomComplet = (user.first_name + ' ' + user.last_name).trim();
+
+/* ----------- journal ----------- */
+
+const log=[];
+
+function journaliser(action,detail=""){
+
+const heure=new Date().toLocaleString("fr-FR");
+
+log.unshift({heure,action,detail});
+
+if(log.length>10)log.pop();
+
+el("sessionLog").innerHTML=log.map(e=>
+"<p><small>"+esc(e.heure)+"</small> — "+esc(e.action)+" "+esc(e.detail)+"</p>"
+).join("");
+
 }
 
-/* =====================================================================
-   LOGIQUE MÉTIER
-===================================================================== */
+/* ----------- profil ----------- */
 
-function getReportByCode(code)  { return mockReports[code.toUpperCase()] || null; }
-function countUserReports()     { return Object.values(mockReports).filter(r => r.author === fullName(user)).length; }
-function canAccessReport(report){ return ['rh', 'juriste', 'admin'].includes(user.role) || report.author === fullName(user) || report.anonymous; }
+el("welcomeName").textContent=nomComplet;
+el("welcomeEmail").textContent=user.email;
+el("welcomeRole").textContent=ROLES[user.role];
 
-function findActiveReportCode() {
-    const closed = ['CLOS_FONDE', 'CLOS_NON_FONDE'];
-    return Object.keys(mockReports).find(code => {
-        const r = mockReports[code];
-        return r.author === fullName(user) && !closed.includes(r.status);
-    }) || null;
+el("profileEmail").textContent=user.email;
+el("profileRole").textContent=ROLES[user.role];
+
+// TODO (REMPLACER) : ce comptage se fait sur les données locales de démo.
+// À remplacer par la valeur renvoyée directement par l'API.
+el("totalCount").textContent=
+Object.values(rapports).filter(r=>r.auteur===nomComplet).length;
+
+/* ----------- signalement actif ----------- */
+
+const clos=["CLOS_FONDE","CLOS_NON_FONDE"];
+
+const codeActif=Object.keys(rapports)
+.find(c=>rapports[c].auteur===nomComplet && !clos.includes(rapports[c].statut));
+
+if(codeActif){
+
+const r=rapports[codeActif];
+
+el("activeReport").innerHTML=
+"<p>Code : <strong>"+esc(codeActif)+"</strong></p>"+
+"<p>Type : "+TYPES[r.type]+"</p>"+
+"<p>Titre : "+esc(r.titre)+"</p>"+
+"<p>Statut : <strong>"+STATUTS[r.statut]+"</strong></p>"+
+"<p>Date : "+r.date+"</p>"+
+"<p>Anonyme : "+(r.anonyme?"Oui":"Non")+"</p>";
+
+const etapes=r.etapes;
+
+const faites=etapes.filter(e=>e.fait).length;
+const pct=Math.round((faites/etapes.length)*100);
+
+el("progressSection").innerHTML=
+"<ol>"+
+etapes.map(e=>{
+let statut="○";
+if(e.fait)statut="✔";
+else if(e.actuel)statut="→ en cours";
+return "<li>"+statut+" "+esc(e.label)+" "+(e.date?" - "+e.date:"")+"</li>";
+}).join("")
++"</ol>"+
+"<p>Progression : "+pct+"%</p>";
+
+journaliser("Consultation signalement actif",codeActif);
+
+}else{
+
+el("activeReport").innerHTML="<p>Aucun signalement actif.</p>";
+el("progressSection").innerHTML="<p>Aucune donnée d'avancement.</p>";
+
 }
 
-/* =====================================================================
-   FONCTIONS DE RENDU
-===================================================================== */
+/* ----------- recherche ----------- */
 
-function renderProfile() {
-    const name  = fullName(user);
-    const email = user.email;
-    const role  = ROLE_LABELS[user.role] || user.role;
-    $('welcomeName').textContent  = name;
-    $('welcomeEmail').textContent = email;
-    $('welcomeRole').textContent  = role;
-    $('profileEmail').textContent = email;
-    $('profileRole').textContent  = role;
-    $('totalCount').textContent   = countUserReports();
-    document.title = `Portail – ${role} | HRComplianceTech`;
+el("searchBtn").onclick=()=>{
+
+const code=el("searchInput").value.trim().toUpperCase();
+
+if(!/^SIG-\d{4}-\d{3,}$/.test(code)){
+el("searchResult").innerHTML="<p>Format invalide. Exemple : SIG-2025-034</p>";
+journaliser("Recherche invalide",code);
+return;
 }
 
-function renderActiveReport() {
-    const div  = $('activeReport');
-    const code = findActiveReportCode();
-    if (!code) {
-        div.innerHTML = '<p>Aucun signalement actif. <a href="form/harassment_report_form.html">Déposer un signalement</a></p>';
-        return;
-    }
-    const r = mockReports[code];
-    div.innerHTML = `
-        <table border="1" cellpadding="6"><tbody>
-        <tr><th scope="row">Code</th><td><strong>${escapeHTML(code)}</strong></td></tr>
-        <tr><th scope="row">Type</th><td>${escapeHTML(TYPE_LABELS[r.type]     || r.type)}</td></tr>
-        <tr><th scope="row">Titre</th><td>${escapeHTML(r.title)}</td></tr>
-        <tr><th scope="row">Statut</th><td><strong>${escapeHTML(STATUS_LABELS[r.status] || r.status)}</strong></td></tr>
-        <tr><th scope="row">Date de dépôt</th><td>${escapeHTML(r.date)}</td></tr>
-        <tr><th scope="row">Anonyme</th><td>${r.anonymous ? 'Oui' : 'Non'}</td></tr>
-        </tbody></table>`;
-    logAction('Consultation signalement actif', code);
+// TODO (REMPLACER) : la recherche se fait ici dans les données locales de démo.
+// À remplacer par : fetch('/api/signalements/' + code) puis afficher le résultat.
+const r=rapports[code];
+
+if(!r){
+el("searchResult").innerHTML="<p>Aucun signalement trouvé.</p>";
+journaliser("Recherche sans résultat",code);
+return;
 }
 
-function renderProgress() {
-    const div  = $('progressSection');
-    const code = findActiveReportCode();
-    if (!code || !mockReports[code].steps) {
-        div.innerHTML = "<p>Aucune donnée d'avancement disponible.</p>";
-        return;
-    }
-    const steps = mockReports[code].steps;
-    const done  = steps.filter(s => s.done).length;
-    const pct   = Math.round((done / steps.length) * 100);
-    div.innerHTML =
-        '<ol>' + steps.map(s => {
-            const marker = s.done ? ' ✔' : (s.current ? ' → <em>(étape en cours)</em>' : '');
-            return `<li><strong>${escapeHTML(s.label)}</strong>${s.date ? ' – ' + escapeHTML(s.date) : ''}${marker}</li>`;
-        }).join('') + '</ol>' +
-        `<p>Progression : <progress value="${pct}" max="100" aria-label="${pct}%"></progress> ${pct}&nbsp;% (${done}/${steps.length} étapes)</p>`;
+el("searchResult").innerHTML=
+"<p><strong>"+esc(code)+"</strong></p>"+
+"<p>"+esc(r.titre)+"</p>"+
+"<p>"+STATUTS[r.statut]+"</p>";
+
+journaliser("Consultation dossier",code);
+
+};
+
+/* ----------- tableau RH ----------- */
+
+function afficherTableauRH(){
+
+const fs=el("filterStatus").value;
+const ft=el("filterType").value;
+
+// TODO (REMPLACER) : les données du tableau viennent des données locales de démo.
+// À remplacer par : fetch('/api/signalements?statut='+fs+'&type='+ft)
+const entrees=Object.entries(rapports)
+.filter(([c,r])=>(!fs||r.statut===fs)&&(!ft||r.type===ft));
+
+el("rhTableCount").textContent=entrees.length+" signalement(s) affiché(s)";
+
+el("rhTableBody").innerHTML=entrees.map(([c,r])=>
+
+"<tr>"+
+"<td>"+esc(c)+"</td>"+
+"<td>"+TYPES[r.type]+"</td>"+
+"<td>"+STATUTS[r.statut]+"</td>"+
+"<td>"+r.date+"</td>"+
+"<td>"+(r.anonyme?"Oui":"Non")+"</td>"+
+"<td><a href='form/messaging.html?code="+encodeURIComponent(c)+"'>Messagerie</a></td>"+
+// TODO (REMPLACER) : le bouton Ouvrir fait un alert() de démo.
+// À remplacer par un lien vers la vraie page dossier : href="dashboard/case.html?id="+c
+"<td><button onclick=\"alert('Ouverture du dossier "+c+"')\">Ouvrir</button></td>"+
+"</tr>"
+
+).join("");
+
 }
 
-function renderActions() {
-    const div  = $('actionsSection');
-    const code = findActiveReportCode() || 'SIG-2025-034';
-    if (user.role === 'salarie') {
-        div.innerHTML =
-            `<ul><li><a href="form/harassment_report_form.html">Déposer un nouveau signalement</a></li>` +
-            `<li><a href="form/messaging.html?code=${encodeURIComponent(code)}">Messagerie anonyme – ${escapeHTML(code)}</a></li></ul>` +
-            `<p><small>Votre identité est protégée. En cas de signalement anonyme, seul votre code de suivi vous identifie.</small></p>`;
-    } else if (user.role === 'rh' || user.role === 'juriste') {
-        div.innerHTML =
-            `<ul><li><a href="dashboard/rh_dashboard.html">Accéder au portail RH/Juriste</a></li>` +
-            `<li><a href="dashboard/stats.html">Statistiques et indicateurs</a></li></ul>`;
-        $('rhSection').removeAttribute('hidden');
-        $('section-log').removeAttribute('hidden');
-        renderRhTable();
-        logAction('Accès tableau de bord RH/Juriste');
-    } else if (user.role === 'admin') {
-        div.innerHTML =
-            `<ul><li><a href="admin/users.html">Gestion des utilisateurs et des droits</a></li>` +
-            `<li><a href="admin/audit_log.html">Journal d'audit complet</a></li>` +
-            `<li><a href="admin/sync.html">Synchronisation avec l'application bureautique</a></li></ul>`;
-        $('section-log').removeAttribute('hidden');
-        logAction('Connexion administrateur');
-    }
+/* ----------- affichage RH ----------- */
+
+if(user.role==="rh"||user.role==="juriste"||user.role==="admin"){
+
+el("rhSection").hidden=false;
+el("section-log").hidden=false;
+
+afficherTableauRH();
+
 }
 
-function renderRhTable(filterStatus = '', filterType = '') {
-    let entries = Object.entries(mockReports).map(([code, report]) => ({ code, report }));
-    if (filterStatus) entries = entries.filter(e => e.report.status === filterStatus);
-    if (filterType)   entries = entries.filter(e => e.report.type   === filterType);
-    $('rhTableCount').textContent = `${entries.length} signalement(s) affiché(s).`;
-    const tbody = $('rhTableBody');
-    if (!entries.length) {
-        tbody.innerHTML = '<tr><td colspan="6"><em>Aucun signalement ne correspond aux filtres.</em></td></tr>';
-        return;
-    }
-    tbody.innerHTML = entries.map(({ code, report: r }) =>
-        `<tr><td>${escapeHTML(code)}</td>` +
-        `<td>${escapeHTML(TYPE_LABELS[r.type]     || r.type)}</td>` +
-        `<td>${escapeHTML(STATUS_LABELS[r.status] || r.status)}</td>` +
-        `<td>${escapeHTML(r.date)}</td>` +
-        `<td>${r.anonymous ? 'Oui' : 'Non'}</td>` +
-        `<td><a href="dashboard/case.html?id=${encodeURIComponent(code)}">Ouvrir le dossier</a></td></tr>`
-    ).join('');
+el("filterStatus").onchange=afficherTableauRH;
+el("filterType").onchange=afficherTableauRH;
+
+/* ----------- actions utilisateur ----------- */
+
+if(user.role==="salarie"){
+
+el("actionsSection").innerHTML=
+"<ul>"+
+"<li>Déposer un nouveau signalement</li>"+
+"<li>Accéder à la messagerie sécurisée</li>"+
+"</ul>";
+
 }
 
-/* =====================================================================
-   INTERACTIONS UTILISATEUR
-===================================================================== */
+/* ----------- déconnexion ----------- */
 
-function searchReport() {
-    const code   = $('searchInput').value.trim().toUpperCase();
-    const result = $('searchResult');
-    if (!CODE_REGEX.test(code)) {
-        result.innerHTML = '<p role="alert"><strong>Format invalide.</strong> Attendu : SIG-AAAA-NNN (ex : SIG-2025-034).</p>';
-        return;
-    }
-    const report = getReportByCode(code);
-    if (!report) {
-        result.innerHTML = `<p role="alert">Aucun signalement trouvé pour « ${escapeHTML(code)} ».</p>`;
-        logAction('Recherche – introuvable', code);
-        return;
-    }
-    if (!canAccessReport(report)) {
-        result.innerHTML = `<p role="alert"><strong>Accès refusé.</strong> Ce signalement n'est pas accessible avec votre rôle.</p>`;
-        logAction('Recherche – accès refusé', code);
-        return;
-    }
-    result.innerHTML =
-        `<p><strong>${escapeHTML(code)}</strong> – ${escapeHTML(TYPE_LABELS[report.type] || report.type)}</p>` +
-        `<p>Titre : ${escapeHTML(report.title)} | Statut : <strong>${escapeHTML(STATUS_LABELS[report.status] || report.status)}</strong></p>` +
-        `<p>Déposé le : ${escapeHTML(report.date)} | Anonyme : ${report.anonymous ? 'Oui' : 'Non'}</p>`;
-    logAction('Consultation via recherche', code);
-}
+el("logoutBtn").onclick=()=>{
 
-function logout() {
-    if (!confirm('Confirmer la déconnexion ?')) return;
-    logAction('Déconnexion');
-    localStorage.removeItem('user');
-    sessionStorage.clear();
-    window.location.replace('form/login.html');
-}
+if(!confirm("Confirmer la déconnexion ?"))return;
 
-/* =====================================================================
-   INITIALISATION
-===================================================================== */
+journaliser("Déconnexion");
 
-function init() {
-    renderProfile();
-    renderActiveReport();
-    renderProgress();
-    renderActions();
-    logAction('Connexion au portail');
-}
+// TODO (REMPLACER) : déconnexion simulée par un simple reload.
+// À remplacer par : localStorage.removeItem('user') + redirect vers login.html
+alert("Déconnexion simulée");
 
-$('logoutBtn').addEventListener('click', logout);
-$('searchBtn').addEventListener('click', searchReport);
-$('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') searchReport(); });
+location.reload();
 
-['filterStatus', 'filterType'].forEach(id => {
-    $(id).addEventListener('change', function () {
-        renderRhTable($('filterStatus').value, $('filterType').value);
-        logAction(id === 'filterStatus' ? 'Filtre statut' : 'Filtre type', this.value || 'Tous');
-    });
-});
+};
 
-init();
+journaliser("Connexion au portail");
+
 </script>
 
 </body>
