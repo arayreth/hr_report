@@ -1,7 +1,7 @@
 <?php
 // ===========================================================
 // Sécurité : vérification de session
-// TODO : décommenter quand la session sera branchée
+// TODO : décommenter quand la session sera branché
 // session_start();
 // if (!isset($_SESSION['user'])) {
 //     header('Location: ../login.php');
