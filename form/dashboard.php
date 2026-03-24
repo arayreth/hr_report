@@ -1,300 +1,431 @@
 <?php
-// ===========================================================
-// Sécurité : vérification de session
-// TODO : décommenter quand la session sera branché
-// session_start();
-// if (!isset($_SESSION['user'])) {
-//     header('Location: ../login.php');
-//     exit;
-// }
-// $user = $_SESSION['user'];
-// ===========================================================
+session_start();
+require_once 'db.php';
 
 // ===========================================================
-// TODO (SUPPRIMER) : utilisateur de démo par défaut
-// À remplacer par les données de session ci-dessus
-$user = [
-    'first_name' => 'Marie',
-    'last_name'  => 'Lambert',
-    'email'      => 'marie.lambert@entreprise.fr',
-    'role'       => 'rh',
-];
+// CONTROLE SESSION
+// Si pas connecté → retour login
 // ===========================================================
-
-// Référentiels
-$ROLES = [
-    'salarie'  => 'Salarié',
-    'rh'       => 'Responsable RH',
-    'juriste'  => 'Juriste',
-    'admin'    => 'Administrateur',
-];
-
-$STATUTS = [
-    'OUVERT'           => 'Ouvert',
-    'EN_COURS'         => 'En cours',
-    'EN_ATTENTE_INFO'  => 'En attente d\'informations',
-    'CLOS_FONDE'       => 'Clôturé – Fondé',
-    'CLOS_NON_FONDE'   => 'Clôturé – Non fondé',
-];
-
-$TYPES = [
-    'moral_harassment'           => 'Harcèlement moral',
-    'sexual_harassment'          => 'Harcèlement sexuel',
-    'discriminatory_harassment'  => 'Harcèlement discriminatoire',
-    'abuse_of_authority'         => 'Abus d\'autorité',
-];
-
-// ===========================================================
-// TODO (SUPPRIMER) : données de démonstration
-// À remplacer par un appel à la base de données
-$rapports = [
-    'SIG-2025-034' => [
-        'type'   => 'moral_harassment',
-        'statut' => 'EN_COURS',
-        'date'   => '12/03/2025',
-        'anonyme' => false,
-        'auteur' => 'Marie Lambert',
-        'titre'  => 'Pression répétée de la hiérarchie',
-        'etapes' => [
-            ['label' => 'Signalement déposé',      'date' => '12/03/2025', 'fait' => true],
-            ['label' => 'Accusé de réception',     'date' => '12/03/2025', 'fait' => true],
-            ['label' => 'Instruction en cours',    'date' => '14/03/2025', 'fait' => false, 'actuel' => true],
-            ['label' => 'Audition (si nécessaire)','date' => '',           'fait' => false],
-            ['label' => 'Décision et clôture',     'date' => '',           'fait' => false],
-        ],
-    ],
-    'SIG-2025-011' => [
-        'type'   => 'abuse_of_authority',
-        'statut' => 'CLOS_FONDE',
-        'date'   => '15/01/2025',
-        'anonyme' => true,
-        'auteur' => 'Anonyme',
-        'titre'  => 'Comportement intimidant du responsable',
-        'etapes' => [
-            ['label' => 'Signalement déposé', 'fait' => true],
-            ['label' => 'Instruction',         'fait' => true],
-            ['label' => 'Clôture – Fondé',    'fait' => true],
-        ],
-    ],
-];
-// ===========================================================
-
-$nomComplet = trim($user['first_name'] . ' ' . $user['last_name']);
-$role       = $user['role'];
-
-// Signalement actif (non clôturé) de l'utilisateur
-$clos       = ['CLOS_FONDE', 'CLOS_NON_FONDE'];
-$codeActif  = null;
-foreach ($rapports as $code => $r) {
-    if ($r['auteur'] === $nomComplet && !in_array($r['statut'], $clos)) {
-        $codeActif = $code;
-        break;
-    }
+if (!isset($_SESSION['user'])) {
+    header('Location: login.php');
+    exit;
 }
 
-// Comptage des signalements de l'utilisateur
-// TODO : remplacer par un COUNT() en base de données
-$totalCount = count(array_filter($rapports, fn($r) => $r['auteur'] === $nomComplet));
+$user      = $_SESSION['user'];
+$role      = $user['role'];
+$isRH      = in_array($role, ['rh', 'juriste']);
+$isJuriste = ($role === 'juriste');
 
-// Recherche par code
-$searchCode   = '';
-$searchResult = null;
-$searchError  = '';
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search_code'])) {
-    $searchCode = strtoupper(trim($_POST['search_code']));
-    if (!preg_match('/^SIG-\d{4}-\d{3,}$/', $searchCode)) {
-        $searchError = 'Format invalide. Exemple : SIG-2025-034';
-    } else {
-        // TODO : remplacer par SELECT … WHERE code = :code
-        $searchResult = $rapports[$searchCode] ?? null;
-    }
+// ===========================================================
+// JOURNAL (session)
+// TODO : remplacer par INSERT dans table journal en BDD
+// ===========================================================
+if (!isset($_SESSION['journal'])) $_SESSION['journal'] = [];
+
+function journaliser($action, $detail = '') {
+    $_SESSION['journal'][] = [
+        'date'   => date('d/m/Y H:i'),
+        'action' => $action,
+        'detail' => $detail
+    ];
 }
 
-// Filtres tableau RH
-$filterStatus = $_GET['statut'] ?? '';
-$filterType   = $_GET['type']   ?? '';
+// ===========================================================
+// REFERENTIELS (BDD)
+// ===========================================================
+$categories = $pdo->query("SELECT * FROM Categorie_Signalement")->fetchAll();
+$statuts    = $pdo->query("SELECT * FROM Status")->fetchAll();
 
-$isRHView = in_array($role, ['rh', 'juriste', 'admin']);
+// ===========================================================
+// IA SIMPLE
+// ===========================================================
+$IA = [
+    'harcelement' => ['insulte', 'pression'],
+    'sexuel'      => ['sexuel', 'attouchement'],
+];
+
+// ===========================================================
+// ACTION DEPOT
+// ===========================================================
+if (($_POST['action'] ?? '') === 'deposer') {
+
+    $titre   = htmlspecialchars($_POST['titre']);
+    $desc    = htmlspecialchars($_POST['description']);
+    $cat     = (int)$_POST['categorie'];
+    $anonyme = isset($_POST['anonyme']);
+
+    // IA : requalification automatique
+    foreach ($IA as $label => $mots) {
+        foreach ($mots as $m) {
+            if (str_contains(strtolower($desc), $m)) {
+                $q = $pdo->prepare("SELECT IdCat FROM Categorie_Signalement WHERE Libelle LIKE ?");
+                $q->execute(["%$label%"]);
+                if ($id = $q->fetchColumn()) $cat = $id;
+            }
+        }
+    }
+
+    // Utilisateur anonyme
+    $idUtil = $user['id_util'];
+    if ($anonyme) {
+        $pdo->prepare("INSERT INTO Utilisateurs (CodeAnonyme) VALUES (?)")
+            ->execute(['ANON-' . uniqid()]);
+        $idUtil = $pdo->lastInsertId();
+    }
+
+    // INSERT signalement
+    $pdo->prepare("
+        INSERT INTO Signalement (Titre, Signalement, Categorie, Status)
+        VALUES (?,?,?,1)
+    ")->execute([$titre, $desc, $cat]);
+
+    $id   = $pdo->lastInsertId();
+    $code = 'SIG-' . date('Y') . '-' . str_pad($id, 3, '0', STR_PAD_LEFT);
+
+    $pdo->prepare("UPDATE Signalement SET CodeSuivi=? WHERE IdSignalement=?")
+        ->execute([$code, $id]);
+
+    // Pièces jointes → PiecesJointes + Signalement_PJ
+    // TODO : stocker les fichiers dans un répertoire sécurisé hors webroot
+    if (!empty($_FILES['pieces']['name'][0])) {
+        $typesOk = ['application/pdf', 'image/jpeg', 'image/png', 'audio/mpeg', 'audio/wav'];
+        $stmtPj  = $pdo->prepare("INSERT INTO PiecesJointes (Pj) VALUES (?)");
+        $stmtSpj = $pdo->prepare("INSERT INTO Signalement_PJ (IdSignalement,IdPj) VALUES (?,?)");
+        foreach ($_FILES['pieces']['name'] as $i => $fname) {
+            if ($fname && in_array($_FILES['pieces']['type'][$i], $typesOk)) {
+                $stmtPj->execute([htmlspecialchars($fname)]);
+                $stmtSpj->execute([$id, $pdo->lastInsertId()]);
+            }
+        }
+    }
+
+    // Accusé de réception automatique
+    $pdo->prepare("
+        INSERT INTO Message (AuteurMessage, DestinataireMessage, ContenuMessage)
+        VALUES (?,?,?)
+    ")->execute([
+        $idUtil,
+        $user['id_gest'],
+        'Accusé de réception – signalement enregistré sous ' . $code
+    ]);
+
+    journaliser('DEPOT', $code);
+}
+
+// ===========================================================
+// ACTION MESSAGE
+// ===========================================================
+if (($_POST['action'] ?? '') === 'message') {
+
+    $msg   = htmlspecialchars($_POST['msg']);
+    $idSig = (int)$_POST['id_signalement'];
+
+    $pdo->prepare("
+        INSERT INTO Message (AuteurMessage, DestinataireMessage, ContenuMessage)
+        VALUES (?,?,?)
+    ")->execute([
+        $user['id_util'],
+        $user['id_gest'],
+        $msg
+    ]);
+
+    journaliser('MESSAGE', '#' . $idSig);
+}
+
+// ===========================================================
+// ACTION STATUT
+// ===========================================================
+if (($_POST['action'] ?? '') === 'statut' && $isRH) {
+
+    $pdo->prepare("UPDATE Signalement SET Status=? WHERE IdSignalement=?")
+        ->execute([(int)$_POST['statut'], (int)$_POST['id']]);
+
+    journaliser('STATUT', '#' . (int)$_POST['id']);
+}
+
+// ===========================================================
+// ACTION ANNOTATION
+// ===========================================================
+if (($_POST['action'] ?? '') === 'annoter' && $isJuriste) {
+
+    $pdo->prepare("UPDATE Signalement SET AnnotationLegal=? WHERE IdSignalement=?")
+        ->execute([htmlspecialchars($_POST['annotation']), (int)$_POST['id']]);
+
+    journaliser('ANNOTATION', '#' . (int)$_POST['id']);
+}
+
+// ===========================================================
+// DECONNEXION
+// ===========================================================
+if (($_GET['action'] ?? '') === 'logout') {
+    session_destroy();
+    header('Location: login.php');
+    exit;
+}
+
+// ===========================================================
+// ROUTING
+// ===========================================================
+$page = $_GET['page'] ?? 'home';
+
+// ===========================================================
+// DATA (BDD)
+// ===========================================================
+$rapports = $pdo->query("
+    SELECT s.*, c.Libelle cat, st.Status stat
+    FROM Signalement s
+    LEFT JOIN Categorie_Signalement c ON c.IdCat  = s.Categorie
+    LEFT JOIN Status st               ON st.IdStatus = s.Status
+    ORDER BY s.DateCrea DESC
+")->fetchAll();
 ?>
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portail de signalement interne – HRComplianceTech</title>
+    <title>Portail</title>
 </head>
 <body>
 
-<header>
-    <h1>Portail de signalements internes</h1>
-    <p>
-        Bonjour <strong><?= htmlspecialchars($nomComplet) ?></strong> —
-        <?= htmlspecialchars($user['email']) ?> |
-        Rôle : <?= htmlspecialchars($ROLES[$role]) ?>
-
-        <form method="post" action="logout.php" style="display:inline">
-            <button type="submit">Se déconnecter</button>
-        </form>
-    </p>
-</header>
+<h1>Portail de signalement</h1>
+<p>
+    <?= htmlspecialchars($user['nom']) ?>
+    (<?= htmlspecialchars($role) ?> – <?= htmlspecialchars($user['email']) ?>)
+    | <a href="?action=logout">Déconnexion</a>
+</p>
 
 <hr>
 
-<main>
+<a href="?">Accueil</a> |
+<a href="?page=report">Déposer</a> |
+<a href="?page=msg">Messagerie</a>
 
-    <!-- ===== Profil ===== -->
-    <h2>Mon profil</h2>
-    <p>Email : <?= htmlspecialchars($user['email']) ?></p>
-    <p>Rôle : <?= htmlspecialchars($ROLES[$role]) ?></p>
-    <p>Nombre de signalements déposés : <?= $totalCount ?></p>
+<?php if ($isRH): ?>
+| <a href="?page=dashboard">RH</a>
+| <a href="?page=archives">Archives</a>
+| <a href="?page=journal">Journal</a>
+<?php endif; ?>
 
-    <hr>
+<?php if ($isJuriste): ?>
+| <a href="?page=juriste">Juriste</a>
+<?php endif; ?>
 
-    <!-- ===== Signalement actif ===== -->
-    <h2>Mon signalement actif</h2>
-    <?php if ($codeActif): $r = $rapports[$codeActif]; ?>
-        <p>Code : <strong><?= htmlspecialchars($codeActif) ?></strong></p>
-        <p>Type : <?= htmlspecialchars($TYPES[$r['type']]) ?></p>
-        <p>Titre : <?= htmlspecialchars($r['titre']) ?></p>
-        <p>Statut : <strong><?= htmlspecialchars($STATUTS[$r['statut']]) ?></strong></p>
-        <p>Date : <?= htmlspecialchars($r['date']) ?></p>
-        <p>Anonyme : <?= $r['anonyme'] ? 'Oui' : 'Non' ?></p>
-    <?php else: ?>
-        <p>Aucun signalement actif.</p>
-    <?php endif; ?>
+<hr>
 
-    <hr>
+<!-- ================= ACCUEIL ================= -->
+<?php if ($page === 'home'): ?>
 
-    <!-- ===== Avancement ===== -->
-    <h2>Avancement du signalement</h2>
-    <?php if ($codeActif): $etapes = $r['etapes']; $faites = count(array_filter($etapes, fn($e) => $e['fait'])); $pct = round(($faites / count($etapes)) * 100); ?>
-        <ol>
-            <?php foreach ($etapes as $e): ?>
-                <li>
-                    <?php
-                        if ($e['fait']) echo '✔';
-                        elseif (!empty($e['actuel'])) echo '→ en cours';
-                        else echo '○';
-                    ?>
-                    <?= htmlspecialchars($e['label']) ?>
-                    <?= !empty($e['date']) ? ' - ' . htmlspecialchars($e['date']) : '' ?>
-                </li>
-            <?php endforeach; ?>
-        </ol>
-        <p>Progression : <?= $pct ?>%</p>
-    <?php else: ?>
-        <p>Aucune donnée d'avancement.</p>
-    <?php endif; ?>
+<h2>Mes signalements</h2>
 
-    <hr>
+<table border="1">
+<tr><th>Code</th><th>Titre</th><th>Catégorie</th><th>Statut</th><th>%</th></tr>
 
-    <!-- ===== Recherche ===== -->
-    <h2>Rechercher un signalement</h2>
-    <form method="post">
-        <label for="search_code">Code du signalement :</label>
-        <input type="text" id="search_code" name="search_code" placeholder="Ex : SIG-2025-034" maxlength="20" value="<?= htmlspecialchars($searchCode) ?>">
-        <button type="submit">Rechercher</button>
-    </form>
+<?php foreach ($rapports as $r):
+$p = match((int)$r['Status']) {
+    1 => 25, 2 => 50, 3 => 75, 4 => 100, default => 0
+};
+?>
+<tr>
+<td><?= htmlspecialchars($r['CodeSuivi']) ?></td>
+<td><?= htmlspecialchars($r['Titre'])    ?></td>
+<td><?= htmlspecialchars($r['cat'])      ?></td>
+<td><?= htmlspecialchars($r['stat'])     ?></td>
+<td><?= $p ?>%</td>
+</tr>
+<?php endforeach; ?>
 
-    <?php if ($searchError): ?>
-        <p><?= htmlspecialchars($searchError) ?></p>
-    <?php elseif ($searchCode !== '' && $searchResult === null): ?>
-        <p>Aucun signalement trouvé.</p>
-    <?php elseif ($searchResult): ?>
-        <p><strong><?= htmlspecialchars($searchCode) ?></strong></p>
-        <p><?= htmlspecialchars($searchResult['titre']) ?></p>
-        <p><?= htmlspecialchars($STATUTS[$searchResult['statut']]) ?></p>
-    <?php endif; ?>
+</table>
 
-    <hr>
+<!-- ================= DEPOT ================= -->
+<?php elseif ($page === 'report'): ?>
 
-    <!-- ===== Actions utilisateur ===== -->
-    <h2>Actions disponibles</h2>
-    <?php if ($role === 'salarie'): ?>
-        <ul>
-            <li><a href="form/report.php">Déposer un nouveau signalement</a></li>
-            <li><a href="form/messaging.php">Accéder à la messagerie sécurisée</a></li>
-        </ul>
-    <?php endif; ?>
+<h2>Déposer</h2>
 
-    <!-- ===== Tableau RH ===== -->
-    <?php if ($isRHView): ?>
-        <hr>
-        <h2>Tableau de bord RH / Juriste</h2>
+<form method="post" enctype="multipart/form-data">
+<input type="hidden" name="action" value="deposer">
 
-        <form method="get">
-            <label>Statut :
-                <select name="statut" onchange="this.form.submit()">
-                    <option value="">Tous</option>
-                    <?php foreach ($STATUTS as $val => $label): ?>
-                        <option value="<?= htmlspecialchars($val) ?>" <?= $filterStatus === $val ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($label) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </label>
+Titre<br>
+<input name="titre" required><br>
 
-            <label>Type :
-                <select name="type" onchange="this.form.submit()">
-                    <option value="">Tous</option>
-                    <?php foreach ($TYPES as $val => $label): ?>
-                        <option value="<?= htmlspecialchars($val) ?>" <?= $filterType === $val ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($label) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </label>
-            <noscript><button type="submit">Filtrer</button></noscript>
-        </form>
+Catégorie<br>
+<select name="categorie">
+<?php foreach ($categories as $c): ?>
+<option value="<?= $c['IdCat'] ?>"><?= htmlspecialchars($c['Libelle']) ?></option>
+<?php endforeach; ?>
+</select><br>
 
-        <?php
-        // TODO : remplacer par SELECT … WHERE statut = :statut AND type = :type
-        $entrees = array_filter($rapports, function($r) use ($filterStatus, $filterType) {
-            return (!$filterStatus || $r['statut'] === $filterStatus)
-                && (!$filterType   || $r['type']   === $filterType);
-        });
-        ?>
+Description<br>
+<textarea name="description" required></textarea><br>
 
-        <p><?= count($entrees) ?> signalement(s) affiché(s)</p>
+Pièces jointes (PDF, image, audio)<br>
+<input type="file" name="pieces[]" multiple accept=".pdf,.jpg,.jpeg,.png,.mp3,.wav"><br>
 
-        <table border="1" cellpadding="6">
-            <thead>
-                <tr>
-                    <th>Code</th>
-                    <th>Type</th>
-                    <th>Statut</th>
-                    <th>Date</th>
-                    <th>Anonyme</th>
-                    <th>Messagerie</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($entrees as $code => $r): ?>
-                    <tr>
-                        <td><?= htmlspecialchars($code) ?></td>
-                        <td><?= htmlspecialchars($TYPES[$r['type']]) ?></td>
-                        <td><?= htmlspecialchars($STATUTS[$r['statut']]) ?></td>
-                        <td><?= htmlspecialchars($r['date']) ?></td>
-                        <td><?= $r['anonyme'] ? 'Oui' : 'Non' ?></td>
-                        <td><a href="form/messaging.php?code=<?= urlencode($code) ?>">Messagerie</a></td>
-                        <!-- TODO : remplacer par le vrai lien vers la page dossier -->
-                        <td><a href="dashboard/case.php?id=<?= urlencode($code) ?>">Ouvrir</a></td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+<label><input type="checkbox" name="anonyme"> Anonyme</label><br>
 
-        <hr>
+<button>Envoyer</button>
+</form>
 
-        <!-- ===== Journal de session ===== -->
-        <h2>Journal de session</h2>
-        <p><em>Le journal sera alimenté côté serveur une fois la session branchée.</em></p>
-        <!-- TODO : afficher ici les entrées du journal stockées en session ou en BDD -->
+<!-- ================= MESSAGERIE ================= -->
+<?php elseif ($page === 'msg'): ?>
 
-    <?php endif; ?>
+<h2>Messagerie</h2>
 
-</main>
+<form method="get">
+<input type="hidden" name="page" value="msg">
+<select name="id">
+<?php foreach ($rapports as $r): ?>
+<option value="<?= (int)$r['IdSignalement'] ?>" <?= ($_GET['id'] ?? 0) == $r['IdSignalement'] ? 'selected' : '' ?>>
+    <?= htmlspecialchars($r['CodeSuivi']) ?> – <?= htmlspecialchars($r['Titre']) ?>
+</option>
+<?php endforeach; ?>
+</select>
+<button>OK</button>
+</form>
+
+<?php
+$idSig = (int)($_GET['id'] ?? 0);
+if ($idSig):
+    $msgs = $pdo->prepare("
+        SELECT m.ContenuMessage, m.DateMessage,
+               u.CodeAnonyme auteurNom,
+               g.Nom gestNom
+        FROM Message m
+        LEFT JOIN Utilisateurs u ON u.Id_util          = m.AuteurMessage
+        LEFT JOIN UtilGest g     ON g.Id_UtilGest       = m.DestinataireMessage
+        WHERE m.AuteurMessage = ? OR m.DestinataireMessage = ?
+        ORDER BY m.DateMessage ASC
+    ");
+    $msgs->execute([$user['id_util'], $user['id_gest']]);
+?>
+
+<table border="1">
+<tr><th>Date</th><th>De</th><th>Message</th></tr>
+<?php foreach ($msgs->fetchAll() as $m): ?>
+<tr>
+<td><?= htmlspecialchars($m['DateMessage'])                          ?></td>
+<td><?= htmlspecialchars($m['auteurNom'] ?? $m['gestNom'] ?? '–')    ?></td>
+<td><?= htmlspecialchars($m['ContenuMessage'])                       ?></td>
+</tr>
+<?php endforeach; ?>
+</table>
+
+<form method="post">
+<input type="hidden" name="action" value="message">
+<input type="hidden" name="id_signalement" value="<?= $idSig ?>">
+<input name="msg" required>
+<button>Envoyer</button>
+</form>
+
+<?php endif; ?>
+
+<!-- ================= DASHBOARD RH ================= -->
+<?php elseif ($page === 'dashboard' && $isRH): ?>
+
+<h2>Dashboard RH</h2>
+
+<table border="1">
+<tr><th>Code</th><th>Titre</th><th>Statut</th><th>Changer statut</th></tr>
+
+<?php foreach ($rapports as $r): ?>
+<tr>
+<td><?= htmlspecialchars($r['CodeSuivi']) ?></td>
+<td><?= htmlspecialchars($r['Titre'])    ?></td>
+<td><?= htmlspecialchars($r['stat'])     ?></td>
+<td>
+<form method="post">
+<input type="hidden" name="action" value="statut">
+<input type="hidden" name="id" value="<?= (int)$r['IdSignalement'] ?>">
+<select name="statut">
+<?php foreach ($statuts as $s): ?>
+<option value="<?= $s['IdStatus'] ?>" <?= $r['Status'] == $s['IdStatus'] ? 'selected' : '' ?>>
+    <?= htmlspecialchars($s['Status']) ?>
+</option>
+<?php endforeach; ?>
+</select>
+<button>OK</button>
+</form>
+</td>
+</tr>
+<?php endforeach; ?>
+
+</table>
+
+<!-- ================= JURISTE ================= -->
+<?php elseif ($page === 'juriste' && $isJuriste): ?>
+
+<h2>Espace juriste</h2>
+
+<?php foreach ($rapports as $r): ?>
+<?php if ($r['stat'] !== 'Clos'): ?>
+<div style="border:1px solid black;padding:10px;margin:10px;">
+
+<strong><?= htmlspecialchars($r['CodeSuivi']) ?></strong> –
+<?= htmlspecialchars($r['Titre']) ?><br>
+
+<?php if (!empty($r['AnnotationLegal'])): ?>
+<em>Annotation : <?= htmlspecialchars($r['AnnotationLegal']) ?></em><br>
+<?php endif; ?>
+
+<form method="post">
+<input type="hidden" name="action" value="annoter">
+<input type="hidden" name="id" value="<?= (int)$r['IdSignalement'] ?>">
+<input name="annotation" placeholder="Qualification légale…" size="40"
+       value="<?= htmlspecialchars($r['AnnotationLegal'] ?? '') ?>">
+<button>Annoter</button>
+</form>
+
+</div>
+<?php endif; endforeach; ?>
+
+<!-- ================= ARCHIVES ================= -->
+<?php elseif ($page === 'archives' && $isRH): ?>
+
+<h2>Archives</h2>
+
+<?php
+$arch = $pdo->query("
+    SELECT s.*, c.Libelle cat, st.Status stat
+    FROM Signalement s
+    LEFT JOIN Categorie_Signalement c ON c.IdCat    = s.Categorie
+    LEFT JOIN Status st               ON st.IdStatus = s.Status
+    WHERE st.Status = 'Clos'
+    ORDER BY s.DateCrea DESC
+")->fetchAll();
+?>
+
+<table border="1">
+<tr><th>Code</th><th>Titre</th><th>Catégorie</th><th>Annotation</th></tr>
+
+<?php foreach ($arch as $r): ?>
+<tr>
+<td><?= htmlspecialchars($r['CodeSuivi'])             ?></td>
+<td><?= htmlspecialchars($r['Titre'])                 ?></td>
+<td><?= htmlspecialchars($r['cat'])                   ?></td>
+<td><?= htmlspecialchars($r['AnnotationLegal'] ?? '') ?></td>
+</tr>
+<?php endforeach; ?>
+
+</table>
+
+<!-- ================= JOURNAL ================= -->
+<?php elseif ($page === 'journal' && $isRH): ?>
+
+<h2>Journal</h2>
+
+<table border="1">
+<tr><th>Date</th><th>Action</th><th>Détail</th></tr>
+
+<?php foreach ($_SESSION['journal'] as $j): ?>
+<tr>
+<td><?= htmlspecialchars($j['date'])   ?></td>
+<td><?= htmlspecialchars($j['action']) ?></td>
+<td><?= htmlspecialchars($j['detail']) ?></td>
+</tr>
+<?php endforeach; ?>
+
+</table>
+
+<?php endif; ?>
 
 </body>
 </html>
