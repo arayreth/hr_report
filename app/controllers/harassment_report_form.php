@@ -70,12 +70,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'application/pdf',
         ];
 
-        $max_size = 20 * 1024 * 1024;
+        $max_size = 2 * 1024 * 1024 * 1024;
 
         if ($_FILES['media_proof']['error'] !== UPLOAD_ERR_OK) {
             $errors[] = 'Erreur lors de l\'upload.';
         } elseif ($_FILES['media_proof']['size'] > $max_size) {
-            $errors[] = 'Fichier trop volumineux (max 20 Mo).';
+            $errors[] = 'Fichier trop volumineux (max 20 Go).';
         } else {
             $finfo = finfo_open(FILEINFO_MIME_TYPE);
             $mime  = finfo_file($finfo, $_FILES['media_proof']['tmp_name']);
