@@ -201,7 +201,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <label>Type *</label>
                 <select name="reporting_type" required>
-                    <option value="">Choisir</option>
+                    <option value="" disabled selected>Choisir</option>
                     <?php foreach ($reporting_types as $value => $label): ?>
                         <option value="<?= $value ?>" <?= $old['reporting_type'] === $value ? 'selected' : '' ?>>
                             <?= htmlspecialchars($label) ?>
