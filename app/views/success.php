@@ -1,5 +1,13 @@
 <?php
+require __DIR__ . '/../../config/logger.php';
+
 $code = $_GET['code'] ?? null;
+
+if ($code) {
+    write_log('info', 'SIGNALEMENT_SUCCESS_PAGE', ['code' => substr($code, 0, 8) . '…']);
+} else {
+    write_log('warning', 'SUCCESS_PAGE_SANS_CODE');
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -8,6 +16,7 @@ $code = $_GET['code'] ?? null;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="/brand/logo_hr.ico">
     <title>Confirmation</title>
 </head>
 
@@ -40,7 +49,7 @@ $code = $_GET['code'] ?? null;
             </section>
 
             <button type="button" onclick="window.location.href='../../index.php'">
-            Retour au dashboard
+                Retour au dashboard
             </button>
 
         </div>
