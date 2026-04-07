@@ -1,34 +1,39 @@
 <?php
 session_start();
 require __DIR__ . '/../../config/db.php';
+require __DIR__ . '/../../config/logger.php';
 
 if (!isset($_SESSION['user_id'])) {
+    write_log('warning', 'DASHBOARD_ACCES_NON_AUTORISE');
     header('Location: login.php');
     exit;
 }
 
+write_log('info', 'DASHBOARD_ACCES', ['user_id' => $_SESSION['user_id']]);
+
 $error = '';
 
-// Recherche par code de suivi
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $code = trim($_POST['code'] ?? '');
 
     if ($code === '') {
         $error = 'Veuillez entrer un code de suivi.';
+        write_log('warning', 'RECHERCHE_CODE_VIDE', ['user_id' => $_SESSION['user_id']]);
     } else {
         $stmt = $pdo->prepare("SELECT IdSignalement FROM signalement WHERE CodeSuivi = :code");
         $stmt->execute([':code' => $code]);
 
         if ($stmt->fetch()) {
+            write_log('info', 'RECHERCHE_CODE_TROUVE', ['user_id' => $_SESSION['user_id'], 'code' => substr($code, 0, 8) . '…']);
             header('Location: suivi.php?code=' . urlencode($code));
             exit;
         } else {
             $error = 'Aucun signalement trouvé pour ce code.';
+            write_log('warning', 'RECHERCHE_CODE_INTROUVABLE', ['user_id' => $_SESSION['user_id'], 'code' => substr($code, 0, 8) . '…']);
         }
     }
 }
 
-// Récupère tous les signalements de l'utilisateur connecté
 $stmt = $pdo->prepare("
     SELECT s.IdSignalement, s.CodeSuivi, s.DateCrea, s.Titre, s.Anonyme,
            s.Nom, s.Prenom, s.Pj,
@@ -43,7 +48,6 @@ $stmt = $pdo->prepare("
 $stmt->execute([':userId' => $_SESSION['user_id']]);
 $signalements = $stmt->fetchAll();
 
-// Stats
 $total      = count($signalements);
 $en_attente = 0;
 $en_cours   = 0;
@@ -59,44 +63,47 @@ foreach ($signalements as $s) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon espace</title>
-    <link rel="stylesheet" href="/style.css">
+    <title>Mon espace – Legatech</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="icon" type="image/x-icon" href="/brand/logo_hr.ico">
 </head>
 <body>
 <div class="dashboard-wrapper">
 
     <div class="header-row">
-        <div class="header-block" style="text-align:left; margin-bottom:0;">
-            <div class="badge">Espace déclarant</div>
-            <h1 style="margin-top:10px;">Mes signalements</h1>
-        </div>
+        <img src="/brand/logo_hr.png" alt="HR Compliance Tech" class="logo dashboard-logo">
         <a href="logout.php" class="logout-link">Se déconnecter →</a>
     </div>
 
-    <!-- Stats -->
+    <div class="header-block dashboard-header-block">
+        <div class="badge">Espace déclarant</div>
+        <h1>Mes signalements</h1>
+    </div>
+
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-number"><?= $total ?></div>
             <div class="stat-label">Total</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number" style="color:#e0b432;"><?= $en_attente ?></div>
+            <div class="stat-number stat-number--attente"><?= $en_attente ?></div>
             <div class="stat-label">En attente</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number" style="color:#5ab4f0;"><?= $en_cours ?></div>
+            <div class="stat-number stat-number--cours"><?= $en_cours ?></div>
             <div class="stat-label">En cours</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number" style="color:#6cc87a;"><?= $ferme ?></div>
+            <div class="stat-number stat-number--ferme"><?= $ferme ?></div>
             <div class="stat-label">Fermés</div>
         </div>
     </div>
 
-    <!-- Actions : nouveau signalement + recherche par code -->
     <div class="actions-row">
-        <a href="harassment_report_form.php" class="btn-new-report" style="flex:none; width:auto; padding: 12px 24px;">
+        <a href="harassment_report_form.php" class="btn-new-report btn-new-report--inline">
             ＋ Nouveau signalement
         </a>
 
@@ -116,12 +123,11 @@ foreach ($signalements as $s) {
         <p class="error-inline">⚠️ <?= htmlspecialchars($error) ?></p>
     <?php endif; ?>
 
-    <!-- Table des signalements -->
     <div class="table-wrapper">
         <?php if (empty($signalements)): ?>
             <div class="empty-state">
                 Vous n'avez encore déposé aucun signalement.<br>
-                <a href="harassment_report_form.php" style="color:#e07b6a; text-decoration:none; margin-top:10px; display:inline-block;">Déposer un signalement →</a>
+                <a href="harassment_report_form.php" class="empty-state-link">Déposer un signalement →</a>
             </div>
         <?php else: ?>
         <table>
@@ -150,13 +156,13 @@ foreach ($signalements as $s) {
                     <td><?= date('d/m/Y', strtotime($s['DateCrea'])) ?></td>
                     <td><span class="code-suivi"><?= htmlspecialchars(substr($s['CodeSuivi'], 0, 8)) ?>…</span></td>
                     <td><?= htmlspecialchars($s['CategorieLibelle']) ?></td>
-                    <td><?= htmlspecialchars($s['Titre']) ?></td>
+                    <td><?= htmlspecialchars(decrypt($s['Titre'])) ?></td>
                     <td><span class="badge-status <?= $cls ?>"><?= htmlspecialchars($s['StatusLibelle']) ?></span></td>
                     <td>
                         <?php if ($s['Pj']): ?>
-                            <span style="color:#e07b6a;">📎</span>
+                            <span class="pj-present">📎</span>
                         <?php else: ?>
-                            <span style="color:rgba(255,255,255,0.2);">—</span>
+                            <span class="pj-absent">—</span>
                         <?php endif; ?>
                     </td>
                     <td>
@@ -168,6 +174,16 @@ foreach ($signalements as $s) {
         </table>
         <?php endif; ?>
     </div>
+
+    <footer class="dashboard-footer">
+        <p>
+            &copy; <?= date('Y') ?> Legatech – Tous droits réservés
+            &nbsp;|&nbsp;
+            <a href="../legal/sapin2.php">Loi Sapin 2</a>
+            &nbsp;|&nbsp;
+            <a href="../legal/mention_legales.php">Mentions légales</a>
+        </p>
+    </footer>
 
 </div>
 </body>
