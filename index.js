@@ -30,7 +30,7 @@ function toggleNameFields(isAnonymous) {
     if (first) first.disabled = isAnonymous;
 }
 
-// ── File preview (harassment_report_form.php) ──
+// ── File preview + validation taille (harassment_report_form.php) ──
 document.addEventListener('DOMContentLoaded', function () {
     const input = document.getElementById('media_proof');
     if (!input) return;
@@ -47,6 +47,16 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        const maxFileSize = 2 * 1024 * 1024 * 1024; // 2 Go
+
+        if (file.size > maxFileSize) {
+            label.innerHTML = '❌ Fichier trop volumineux (max 2 Go)';
+            label.style.color = '#ff6b6b';
+            input.value = '';
+            return;
+        }
+
+        label.style.color = '';
         const sizeMB = (file.size / 1024 / 1024).toFixed(2);
         label.innerHTML = '✅ ' + file.name + ' — ' + sizeMB + ' Mo';
 
@@ -63,6 +73,18 @@ document.addEventListener('DOMContentLoaded', function () {
             preview.innerHTML = '<video controls style="margin-top:12px; max-width:100%; border-radius:10px;"><source src="' + url + '" type="' + file.type + '"></video>';
         }
     });
+
+    // Bloquer la soumission si fichier trop grand
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            const file = input.files[0];
+            if (file && file.size > 2 * 1024 * 1024 * 1024) {
+                e.preventDefault();
+                alert('Le fichier dépasse la limite de 2 Go.');
+            }
+        });
+    }
 });
 
  function togglePassword() {
