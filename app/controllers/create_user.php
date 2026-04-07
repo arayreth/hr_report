@@ -1,5 +1,4 @@
 <?php
-// fichier de secours pour créer un utilisateur
 require __DIR__ . '/../../config/db.php';
 
 $message = '';
