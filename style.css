@@ -28,6 +28,13 @@ body {
     margin-bottom: 36px;
 }
 
+.logo {
+    display: block;
+    width: 80px;
+    height: auto;
+    margin: 20px auto 20px;
+}
+
 .badge {
     display: inline-block;
     background: rgba(255, 255, 255, 0.07);
@@ -890,4 +897,381 @@ tbody td {
         flex-direction: column;
         padding: 22px;
     }
+}
+
+/* ── Styles spécifiques à la page Sapin 2 ── */
+
+.sapin-header {
+    text-align: center;
+    margin-bottom: 36px;
+}
+
+.sapin-intro {
+    color: #7a9ab8;
+    font-size: 0.9rem;
+    margin: 0 auto;
+    max-width: 580px;
+    line-height: 1.7;
+}
+
+.sapin-card {
+    background: linear-gradient(160deg, #1f5a80 0%, #174f71 100%);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.sapin-card-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 24px 32px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sapin-card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(224, 123, 106, 0.15);
+    border: 1px solid rgba(224, 123, 106, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.sapin-card-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sapin-card-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.sapin-card-body {
+    padding: 24px 32px 28px;
+}
+
+.sapin-card-body p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+    line-height: 1.75;
+    margin: 0 0 14px;
+}
+
+.sapin-card-body p:last-child {
+    margin-bottom: 0;
+}
+
+.sapin-card-body strong {
+    color: #e8edf2;
+    font-weight: 600;
+}
+
+.sapin-highlight {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 12px 18px;
+    background: rgba(224, 123, 106, 0.1);
+    border: 1px solid rgba(224, 123, 106, 0.25);
+    border-radius: 10px;
+    font-size: 0.85rem;
+    color: #e07b6a;
+    font-weight: 600;
+}
+
+.sapin-amounts {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+}
+
+.sapin-amount-pill {
+    flex: 1;
+    min-width: 160px;
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    text-align: center;
+}
+
+.sapin-amount-pill .amount-value {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #e07b6a;
+    margin-bottom: 4px;
+}
+
+.sapin-amount-pill .amount-label {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.sapin-footer-note {
+    margin-top: 32px;
+    text-align: center;
+}
+
+.sapin-footer-note a {
+    color: #e07b6a;
+    text-decoration: none;
+}
+
+.sapin-footer-note a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 560px) {
+    .sapin-card-header,
+    .sapin-card-body {
+        padding: 20px 20px;
+    }
+}
+/* ── Styles spécifiques à la page Mentions Légales ── */
+
+.ml-header {
+    text-align: center;
+    margin-bottom: 36px;
+}
+
+.ml-intro {
+    color: #7a9ab8;
+    font-size: 0.9rem;
+    margin: 0 auto;
+    max-width: 580px;
+    line-height: 1.7;
+}
+
+/* ── Bloc de section principal ── */
+.ml-section {
+    background: linear-gradient(160deg, #1f5a80 0%, #174f71 100%);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.ml-section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 24px 32px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ml-section-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(224, 123, 106, 0.15);
+    border: 1px solid rgba(224, 123, 106, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.ml-section-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.ml-section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* ── Sous-sections ── */
+.ml-subsection {
+    padding: 24px 32px 0;
+}
+
+.ml-subsection:last-child {
+    padding-bottom: 28px;
+}
+
+.ml-subsection + .ml-subsection {
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    margin-top: 4px;
+}
+
+.ml-subsection-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #e07b6a;
+    margin: 0 0 14px;
+}
+
+.ml-subsection p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+    line-height: 1.75;
+    margin: 0 0 12px;
+}
+
+.ml-subsection p:last-child {
+    margin-bottom: 0;
+}
+
+.ml-subsection strong {
+    color: #e8edf2;
+    font-weight: 600;
+}
+
+/* ── Pill droits RGPD ── */
+.ml-rights-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.ml-right-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 100px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.ml-right-pill span {
+    color: #e07b6a;
+}
+
+/* ── Alerte prototype ── */
+.ml-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 14px;
+    padding: 14px 18px;
+    background: rgba(224, 123, 106, 0.08);
+    border: 1px solid rgba(224, 123, 106, 0.2);
+    border-radius: 10px;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+    line-height: 1.6;
+}
+
+.ml-alert-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+/* ── Footer ── */
+.ml-footer-note {
+    margin-top: 32px;
+    text-align: center;
+}
+
+@media (max-width: 560px) {
+    .ml-section-header,
+    .ml-subsection {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+}
+/* ── Styles spécifiques au dashboard déclarant ── */
+
+.dashboard-logo {
+    margin: 0;
+}
+
+.dashboard-header-block {
+    text-align: left;
+    margin-bottom: 28px;
+}
+
+.dashboard-header-block h1 {
+    margin-top: 10px;
+}
+
+.stat-number--attente {
+    color: #e0b432;
+}
+
+.stat-number--cours {
+    color: #5ab4f0;
+}
+
+.stat-number--ferme {
+    color: #6cc87a;
+}
+
+.btn-new-report--inline {
+    flex: none;
+    width: auto;
+    padding: 12px 24px;
+}
+
+.pj-present {
+    color: #e07b6a;
+}
+
+.pj-absent {
+    color: rgba(255, 255, 255, 0.2);
+}
+
+/* ── Footer ── */
+.dashboard-footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    text-align: center;
+}
+
+.dashboard-footer p {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.25);
+    margin: 0;
+}
+
+.dashboard-footer a {
+    color: #e07b6a;
+    text-decoration: none;
+}
+
+.dashboard-footer a:hover {
+    text-decoration: underline;
 }
